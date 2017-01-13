@@ -230,3 +230,13 @@ ipcMain.on('close-on-will-navigate', (event, id) => {
     contents.send('closed-on-will-navigate')
   })
 })
+
+ipcMain.on('try-emit-web-contents-event', (event, id, eventName) => {
+  const contents = webContents.fromId(id)
+  try {
+    contents.emit(eventName, {sender: contents})
+    event.returnValue = null
+  } catch (error) {
+    event.returnValue = error.message
+  }
+})
