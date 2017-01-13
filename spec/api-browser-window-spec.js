@@ -1012,6 +1012,23 @@ describe('BrowserWindow module', function () {
           })
         })
       })
+
+      it('supports calling preventDefault on new-window events', (done) => {
+        w.destroy()
+        w = new BrowserWindow({
+          show: false,
+          webPreferences: {
+            sandbox: true
+          }
+        })
+        const initialWebContents = webContents.getAllWebContents()
+        ipcRenderer.send('prevent-next-new-window', w.webContents.id)
+        w.webContents.once('new-window', () => {
+          assert.deepEqual(webContents.getAllWebContents(), initialWebContents)
+          done()
+        })
+        w.loadURL('file://' + path.join(fixtures, 'pages', 'window-open.html'))
+      })
     })
   })
 
@@ -1257,6 +1274,18 @@ describe('BrowserWindow module', function () {
         assert.equal(w.isResizable(), false)
         w.setResizable(true)
         assert.equal(w.isResizable(), true)
+      })
+
+      it('works for a frameless window', () => {
+        w.destroy()
+        w = new BrowserWindow({show: false, frame: false})
+        assert.equal(w.isResizable(), true)
+
+        if (process.platform === 'win32') {
+          w.destroy()
+          w = new BrowserWindow({show: false, thickFrame: false})
+          assert.equal(w.isResizable(), false)
+        }
       })
     })
 
